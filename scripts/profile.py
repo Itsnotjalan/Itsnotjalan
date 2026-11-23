@@ -113,9 +113,9 @@ def spline(n):
     return ';'.join(['.45 0 .55 1'] * n)
 
 # All motion runs on two aligned clocks so that the browser repaints rarely:
-# a slow 2 fps clock (breathing, drift, blink) and an 8 fps clock used only in
-# short bursts (light sweeps). Every step lands on a multiple of 0.125 s.
-SLOW, FAST = 2, 8
+# a slow 4 fps clock (breathing, drift, blink) and a 16 fps clock used only in
+# short bursts (light sweeps). Every step lands on a multiple of 1/16 s.
+SLOW, FAST = 4, 16
 
 
 def stepped(attr, fn, dur, fps=SLOW, begin=0, fmt='{:.3f}', hold_until=None):
@@ -158,8 +158,8 @@ def ease(u):
 
 
 def breathe(lo, hi, dur, begin=0):
-    """Slow opacity breathing on the 2 fps clock (steps of ~1 %)."""
-    begin = round(begin * 2) / 2
+    """Slow opacity breathing on the 4 fps clock (steps of under 1 %)."""
+    begin = round(begin * 4) / 4
     return stepped('opacity', lambda u: lo + (hi - lo) * ease(u), dur, SLOW, begin, '{:.3f}')
 
 
@@ -262,7 +262,7 @@ def sweep_band(doc, fill):
     dur, begin = doc.sheen
     h = doc.h
     move = stepped_tf('translate', lambda u: f'{2400 * (.5 - .5 * math.cos(math.pi * u)):.0f} 0', dur, FAST, begin, 5 / dur)
-    return (f'<g transform="rotate(-24 500 {h / 2:.0f})"><rect x="-1000" y="{-600}" width="440" height="{h + 1200}" '
+    return (f'<g transform="rotate(-24 500 {h / 2:.0f})"><rect x="-1100" y="{-600}" width="620" height="{h + 1200}" '
             f'fill="url(#{fill})">{move}</rect></g>')
 
 
@@ -534,7 +534,7 @@ def typing(lines, x, y, size, step=.125, hold=2.5, gap=.5, lead=.5):
     return ''.join(defs), ''.join(body)
 
 
-def stepped_transform(kind, fn, dur, fps=2, additive=False):
+def stepped_transform(kind, fn, dur, fps=4, additive=False):
     n = int(round(dur * fps))
     vals = [fn(i / n) for i in range(n)]
     kts = [f'{i / n:.4f}' for i in range(n)]
@@ -552,8 +552,8 @@ def hero():
     doc.d('<linearGradient id="pf-l" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0B0907" stop-opacity=".72"/><stop offset=".55" stop-color="#0B0907" stop-opacity="0"/></linearGradient>')
     doc.d('<linearGradient id="pf-b" x1="0" y1="0" x2="0" y2="1"><stop offset=".45" stop-color="#0B0907" stop-opacity="0"/><stop offset="1" stop-color="#0B0907" stop-opacity=".88"/></linearGradient>')
     cx, cy = px + pw / 2, py + ph / 2
-    zoom = stepped_transform('scale', lambda u: f'{1 + .05 * ease(u):.4f}', 60)
-    drift = stepped_transform('translate', lambda u: f'{-12 * ease(u):.2f} {-5 * ease(u):.2f}', 60, additive=True)
+    zoom = stepped_transform('scale', lambda u: f'{1 + .05 * ease(u):.4f}', 90)
+    drift = stepped_transform('translate', lambda u: f'{-12 * ease(u):.2f} {-5 * ease(u):.2f}', 90, additive=True)
     photo = (f'<g clip-path="url(#photo)"><rect x="{px}" y="{py}" width="{pw}" height="{ph}" fill="#0B0907"/>'
              f'<g transform="translate({cx:.0f} {cy:.0f})"><g>{zoom}{drift}'
              f'<image x="{-pw / 2:.0f}" y="{-ph / 2:.0f}" width="{pw}" height="{ph}" preserveAspectRatio="xMidYMid slice" '
